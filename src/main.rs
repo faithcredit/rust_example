@@ -1,73 +1,77 @@
+// -------------------------------------------
+// 			Stack
+//          	- Stack using vec
+// -------------------------------------------
 
-fn main()
-{   
- // -------------------------------------------
- // 			Loops
- // 			- loops with no condition 
- //			- While loop 
- // -------------------------------------------
+fn new_stack(maxsize: usize) -> Vec<u32> {
+    let vec: Vec<u32> = Vec::with_capacity(maxsize);
+    vec
+}
 
- /*
-    loop {
-        println!("This is an infinite loop");
+fn pop(stack: &mut Vec<u32>) -> Option<u32> {
+    let poped_val = stack.pop();
+    println!("The poped value is {:?}", poped_val);
+    poped_val
+}
+
+fn push(stack: &mut Vec<u32>, item: u32, maxsize: usize) {
+    if stack.len() == maxsize {
+        println!("Can not add more")
+    } else {
+        stack.push(item);
+        println!("Stack: {:?}", stack);
     }
- */   
+}
 
-    /*     
-    let my_number = 5; 
-    println!("Guess my number which is between 1 and 20"); 
-    let mut guess: bool = false; 
- 
+fn size(stack: &Vec<u32>) -> usize {
+    stack.len()
+}
 
-    while guess != true {
-        let mut number = String::new();
-        std::io::stdin()
-        .read_line(&mut number)
+fn input() -> u32 {
+    let mut n = String::new();
+    std::io::stdin()
+        .read_line(&mut n)
         .expect("failed to read input.");
-    let number: u8 = number.trim().parse().expect("invalid input");
-    
-    if my_number  == number {
-        println!("You guessed the number correctly");
-        guess = true;  
-    } else {println!("Please try again");}
+
+    let n: u32 = n.trim().parse().expect("invalid input");
+    n
+}
+
+fn main() {
+    println!("let us first create a stack for our use");
+    println!("Please mention the size of the stack ");
+    let size_stack = input();
+    let mut stack = new_stack(size_stack as usize);
+
+    loop {
+        println!("\n\n***** MENU *****\n");
+        println!("1. Push\n2. Pop\n3. Display\n4. Size \n5. Exit");
+        println!("\nEnter your choice: ");
+        let choice = input();
+        match choice {
+            1 => {
+                println!("Enter the value to be insert: ");
+                let item = input();
+                push(&mut stack, item, size_stack as usize);
+            }
+
+            2 => println!("The element which is poped is {:?}", pop(&mut stack)),
+
+            3 => println!("The elements are {:?}", stack),
+
+            4 => println!("The size of the stack is {}", size(&stack)),
+
+            5 => break, // println!("\n Exiting"),
+
+            _ => println!("\nWrong selection!!! Try again!!!"),
+        }
+
+        println!("Do you want to continue 1 = Yes/ 0 = No");
+        let status = input();
+        if status == 1 {
+            continue;
+        } else {
+            break;
+        }
     }
-    
- */ 
- 
- /*
- println!("Enter a number and i will tell you the next 
-         number after your number divisible by both 2 and 5");    
- 
- let mut number = String::new();
- std::io::stdin()
- .read_line(&mut number)
- .expect("failed to read input.");
- 
- let mut number: u8 = number.trim().parse().expect("invalid input"); 
- let mut divisible_by_2_5 = false; 
- 
- while divisible_by_2_5 != true{
-     number = number +1; // number +=1;
-     if number %2 ==0 && number %5 == 0 {
-         println!("The number after you number divisible by both 2 and 5 is {}", number);
-         divisible_by_2_5 = true;  
-     }
- }
- */
-
- println!("Enter a number and i will tell you the next 
- number after your number divisible by both 2 and 5");    
-
- let mut number = String::new();
- std::io::stdin()
- .read_line(&mut number)
- .expect("failed to read input.");
- let mut number: u64 = number.trim().parse().expect("invalid input"); 
-
- number = number +1; 
- while (number %2 ==0 && number %5 == 0)  != true{
-     number = number +1; // number +=1 
-
- }
- println!("The number after you number divisible by both 2 and 5 is {}", number);
 }

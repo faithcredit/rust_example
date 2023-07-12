@@ -1,153 +1,60 @@
 // -------------------------------------------
-// 		Doubly Link list
+// 			Correct Search Results Using Word Grouping
+//           	- Description
+//           	    - Given a list of words, group the words that are anagrams
+
+//           	- Tools
+//           	    - Hashmaps, Nested Loops
 // -------------------------------------------
 
-use std::cell::RefCell;
-use std::rc::Rc;
+use std::collections::HashMap;
+fn word_grouping(words_list: Vec<String>) -> Vec<Vec<String>> {
+    let mut word_hash = HashMap::new();
+    let mut char_freq = vec![0; 26];
 
-struct List<T> {
-    head: Pointer<T>,
-    tail: Pointer<T>,
-}
-
-type Pointer<T> = Option<Rc<RefCell<Node<T>>>>;
-
-pub struct Node<T> {
-    element: T,
-    next: Pointer<T>,
-    prev: Pointer<T>,
-}
-
-impl<T: std::fmt::Display> Node<T> {
-    fn new(element: T) -> Rc<RefCell<Node<T>>> {
-        Rc::new(RefCell::new(Node {
-            element: element,
-            prev: None,
-            next: None,
-        }))
-    }
-}
-
-impl<T: std::fmt::Display> List<T> {
-    fn new() -> Self {
-        List {
-            head: None,
-            tail: None,
+    for current_word in words_list {
+        for c in current_word.to_lowercase().chars() {
+            char_freq[(c as u32 - 'a' as u32) as usize] += 1;
         }
+        let key: String = char_freq
+            .into_iter()
+            .map(|i| i.to_string())
+            .collect::<String>();
+        word_hash
+            .entry(key)
+            .or_insert(Vec::new())
+            .push(current_word);
+
+        char_freq = vec![0; 26];
     }
 
-    fn push_front(&mut self, element: T) {
-        let new_head = Node::new(element);
-        match self.head.take() {
-            Some(old_head) => {
-                old_head.borrow_mut().prev = Some(new_head.clone());
-                new_head.borrow_mut().next = Some(old_head.clone());
-                self.head = Some(new_head);
-            }
-            None => {
-                self.tail = Some(new_head.clone());
-                self.head = Some(new_head);
-            }
-        }
+    // Just for hte sake of output and confirming the (key, value) pairs
+    for (key, value) in &word_hash {
+        println!("key # {:?} value {:?}", key, value);
     }
 
-    fn push_back(&mut self, element: T) {
-        let new_tail = Node::new(element);
-        match self.tail.take() {
-            Some(old_tail) => {
-                old_tail.borrow_mut().next = Some(new_tail.clone());
-                new_tail.borrow_mut().prev = Some(old_tail.clone());
-                self.tail = Some(new_tail);
-            }
-            None => {
-                self.head = Some(new_tail.clone());
-                self.tail = Some(new_tail);
-            }
-        }
-    }
-
-    fn remove_front(&mut self) {
-        if self.head.is_none() {
-            println!("list is empty so we can not remove");
-        } else {
-            self.head.take().map(|old_head| {
-                match old_head.borrow_mut().next.take() {
-                
-                    Some(new_head) => {
-                        new_head.borrow_mut().prev.take();
-                        self.head = Some(new_head);
-                        self.head.clone()
-                    }
-                    None => {
-                        self.tail.take(); 
-                        println!("List is empty after removal ");
-                        None
-                    }
-                }
-            });
-        }
-    }
-
-
-
-
-    fn remove_back(&mut self) {
-        if self.tail.is_none() {
-            println!("list is emtpy so we can not remove");
-        } else {
-            self.tail.take().map(|old_tail| {
-                match old_tail.borrow_mut().prev.take() {
-                    
-                    Some(new_tail) => {
-                        new_tail.borrow_mut().next.take();
-                        self.tail = Some(new_tail);
-                        self.tail.clone()
-                    }
-                    None => {
-                        self.head.take(); 
-                        println!("List is empty after removal");
-                        None
-                    }
-                }
-            });
-        }
-    }
-
-   fn print(&self) {
-      if self.head.is_none() {
-         println!("[]");
-         return;
-      } else {
-         let mut traversal = self.head.clone();
-         while !traversal.is_none() {
-            print!("Element:{} ", traversal.as_ref().unwrap().borrow().element);
-            traversal = traversal.unwrap().borrow().next.clone();
-
-         }  
-         println!(); 
-      }
-   }
+    word_hash.into_iter().map(|(_, v)| v).collect()
 }
 
 fn main() {
+    let words = vec![
+        "The".to_string(),
+        "teh".to_string(),
+        "het".to_string(),
+        "stupid".to_string(),
+        "studpi".to_string(),
+        "apple".to_string(),
+        "appel".to_string(),
+    ];
 
-   let mut list1: List<i32> = List::new();
+    let grouping = word_grouping(words);
+    println!("{:?}\n\n\n", grouping);
 
-   list1.remove_front();
-   list1.push_front(32); 
-   list1.print();
+    let input_word = String::from("The");
 
-   list1.push_front(23); 
-   list1.print();
-
-   list1.remove_front(); 
-   list1.print();
-
-   list1.push_back(56); 
-   list1.print();
-
-   list1.remove_back(); 
-   list1.print();
-
-
+    for i in grouping.into_iter() {
+        if i.contains(&input_word) {
+            println!("The group of the word is {:?}", i);
+        }
+    }
 }

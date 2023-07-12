@@ -1,42 +1,59 @@
 // -------------------------------------------
-// 			Popularity Scores
+// 			Highest Price Stock
 //           	- Description
-//           	    - Given some products along with its respectively popularity scores,
-//                     We want to determine if the popularity is fulctuating, increasing or decreasing
-
+//           	    - We have weekwise stock prices. we want to retrieve the highest
+//                     stock price in any in any week in little to no time.
+//
 //           	- Tools
-//           	    - Hashmaps, Loops, conditional if
+//           	    - Maxstacks, Structures, Vectors
 // -------------------------------------------
 
-fn popularity_analysis(scores: Vec<i32>) -> bool {
-    let mut increasing = true;
-    let mut decreasing = true;
-
-    for i in 0..scores.len() - 1 {
-        if scores[i] > scores[i + 1] {
-            increasing = false;
-        }
-        if scores[i] < scores[i + 1] {
-            decreasing = false;
+struct MaxStack {
+    main_stack: Vec<i32>,
+    maximum_stack: Vec<i32>,
+}
+impl MaxStack {
+    fn new() -> Self {
+        MaxStack {
+            main_stack: Vec::new(),
+            maximum_stack: Vec::new(),
         }
     }
-    return increasing || decreasing;
+
+    fn push(&mut self, value: i32) {
+        self.main_stack.push(value);
+        if !self.maximum_stack.is_empty() && self.maximum_stack.last().unwrap() > &value {
+            self.maximum_stack.push(*self.maximum_stack.last().unwrap());
+        } else {
+            self.maximum_stack.push(value);
+        }
+    }
+    fn pop(&mut self) {
+        self.main_stack.pop();
+        self.maximum_stack.pop();
+    }
+
+    fn max_value(&self) -> i32 {
+        *self.maximum_stack.last().unwrap()
+    }
 }
 
-use std::collections::HashMap;
-
 fn main() {
-    let mut products = HashMap::new();
+    let mut stack = MaxStack::new();
+    stack.push(55);
+    stack.push(80);
+    stack.push(120);
+    stack.push(99);
+    stack.push(22);
+    stack.push(140);
+    stack.push(145);
 
-    products.insert("Product 1", vec![1, 2, 2, 3]);
-    products.insert("Product 2", vec![4, 5, 6, 3, 4]);
-    products.insert("Product 3", vec![8, 8, 7, 6, 5, 4, 4, 1]);
+    print!("Maximum value of stock: ");
+    println!("{:}", stack.max_value());
 
-    for (product_id, popularity) in products {
-        if popularity_analysis(popularity) {
-            println!("{} popularity is increasing or decreasing", product_id);
-        } else {
-            println!("{} popularity is Fluctuating", product_id);
-        }
-    }
+    println!("After going one week back");
+    print!("Maximum value of stock: ");
+    stack.pop();
+
+    println!("{:}", stack.max_value());
 }

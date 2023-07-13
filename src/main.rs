@@ -1,66 +1,34 @@
 // -------------------------------------------
-// 			Longest Non-Stop Work
+// 			Suggesting Items for Special Shopping Card
 //           	- Description
-//           	    - Given time slots numbers, we want to determine the longest consective
-//                     time slots.
-//
+//           	    - Given a list of prices, return a couple of items with their sum matching the given price
 //           	- Tools
-//           	    - HashSet, Vectors, Loops
+//           	    - Hashsets, Vectors
 // -------------------------------------------
 
 use std::collections::HashSet;
-fn longest_busy_time(working_slots: Vec<Vec<u8>>) -> u8 {
-    let mut employee_longest_nonstop_work: Vec<u8> = Vec::new();
-    for i in working_slots {
-        employee_longest_nonstop_work.push(longest_period(i));
-    }
+fn product_suggestions(product_prices: Vec<i32>, amount: i32) -> Vec<Vec<i32>> {
+    let mut prices_hash = HashSet::new();
+    let mut offers = Vec::new();
 
-    for i in 0..employee_longest_nonstop_work.len() {
-        println!(
-            "Employee number {} has worked nonstop for {} slots",
-            i, employee_longest_nonstop_work[i]
-        );
-    }
-
-    let max_val = employee_longest_nonstop_work.iter().max();
-    employee_longest_nonstop_work
-        .iter()
-        .position(|x: &u8| *x == *max_val.unwrap())
-        .unwrap() as u8
-}
-
-fn longest_period(working_slots: Vec<u8>) -> u8 {
-    let mut longest_busy_period = 0;
-    let slot_set: HashSet<_> = working_slots.into_iter().collect();
-
-    for slot in &slot_set {
-        if !slot_set.contains(&(slot - 1)) {
-            let mut current_slot = slot.to_owned();
-            let mut current_consecutive_slot = 1;
-            while slot_set.contains(&(current_slot + 1)) {
-                current_slot += 1;
-                current_consecutive_slot += 1;
-            }
-
-            if current_consecutive_slot > longest_busy_period {
-                longest_busy_period = current_consecutive_slot;
-            }
+    //ec![11, 30, 55, 34, 45, 10, 19, 20, 60, 5, 23];
+    for i in product_prices {
+        let diff = amount - i;
+        if prices_hash.get(&diff).is_none() {
+            prices_hash.insert(i);
+        } else {
+            offers.push(vec![i, diff]);
         }
     }
 
-
-    return longest_busy_period;
+    offers
 }
 
+// Driver code
 fn main() {
-    let schedule: Vec<Vec<u8>> = vec![
-        vec![4, 1, 2, 5, 6, 8, 10, 11],
-        vec![3, 1, 2, 5, 7, 10, 11, 14],
-        vec![3, 1, 15, 5, 13, 12, 10, 14, 15, 16, 17, 18, 8, 9],
-    ];
+    let product = vec![11, 30, 55, 34, 45, 10, 19, 20, 60, 5, 23];
 
-    println!(
-        "Employee number: {} has the highest number of nonstop working slots",
-        longest_busy_time(schedule)
-    );
+    let suggestions = product_suggestions(product, 50);
+    println!("{:?}", suggestions);
+    //return 0;
 }

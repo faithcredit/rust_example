@@ -1,63 +1,29 @@
-   // -------------------------------------------
-   // 			Project: Web Scrapping   
-   // ------------------------------------------- 
+// -------------------------------------------
+// 			 Thread Park
+// -------------------------------------------
 
-   use std::sync::{mpsc,Arc,Mutex}; 
-   use std::time::{Duration, Instant}; 
-   use std::thread; 
-   use ureq::{Agent, AgentBuilder}; 
-   fn main() -> Result<(), ureq::Error>{  
-    let webpages = vec![
-        "https://gist.github.com/recluze/1d2989c7e345c8c3c542", 
-        "https://gist.github.com/recluze/a98aa1804884ca3b3ad3",
-        "https://gist.github.com/recluze/5051735efe3fc189b90d",
-        "https://gist.github.com/recluze/460157afc6a7492555bb",
-        "https://gist.github.com/recluze/5051735efe3fc189b90d",
-        "https://gist.github.com/recluze/c9bc4130af995c36176d",
-        "https://gist.github.com/recluze/1d2989c7e345c8c3c542",
-        "https://gist.github.com/recluze/a98aa1804884ca3b3ad3",
-        "https://gist.github.com/recluze/5051735efe3fc189b90d",
-        "https://gist.github.com/recluze/460157afc6a7492555bb",
-        "https://gist.github.com/recluze/5051735efe3fc189b90d",
-        "https://gist.github.com/recluze/c9bc4130af995c36176d",
-        "https://gist.github.com/recluze/1d2989c7e345c8c3c542",
-        "https://gist.github.com/recluze/a98aa1804884ca3b3ad3",
-        "https://gist.github.com/recluze/5051735efe3fc189b90d",
-        "https://gist.github.com/recluze/460157afc6a7492555bb",
-        "https://gist.github.com/recluze/5051735efe3fc189b90d",
-        "https://gist.github.com/recluze/c9bc4130af995c36176d",
-    ];  
-//////////////////Fetching of contens without Threads/////////////
-    let agent = ureq::AgentBuilder::new().build();
-    let now = Instant::now(); 
-    
-    for web_page in &webpages {
-        let web_body = agent.get(web_page).call()?.into_string()?;
-    }
-    println!("Time taken wihtout Threads: {:.2?}", now.elapsed());
-////////////Fetching of contents using threads///////////////////////////////
-    let now = Instant::now(); 
-    let agent = Arc::new(agent);
-    let mut handles: Vec<thread::JoinHandle<Result<(), ureq::Error>>> = Vec::new(); 
+use std::thread;
+use std::time::Duration;
+fn main() {
+    let job_1 = thread::spawn(|| {
+        println!("-- Job 1 has started -- ");
+        println!("Waiting for job 2 to complete");
+        //thread::park_timeout(Duration::from_secs(2));
+        //thread::sleep(Duration::from_secs(2));
+        thread::park();
+        //thread::yield_now();
 
-    for web_page in webpages {
-        let agent_thread = agent.clone(); 
-        let t = thread::spawn(move || {
-            let web_body = agent_thread
-            .get(web_page)
-            .call()?
-            .into_string()?; 
+        println!("-- Job 1 resumed --");
+        println!("-- Job 1 finished");
+    });
 
-            Ok(())
-        });
-        handles.push(t);
-    } 
-
-    for handle in handles {
-        handle.join().unwrap();
-    }
-
-    println!("Time taken using Threads: {:.2?}", now.elapsed());
-    Ok(())
-
-   }
+    let job_2 = thread::spawn(|| {
+        println!("-- Job 2 started --");
+        println!(" -- Job 2 finished --");
+    });
+    job_2.join().unwrap();
+    println!("Job 2 is now completed");
+    println!("Job 1 will now resume");
+    job_1.thread().unpark();
+    job_1.join().unwrap();
+}

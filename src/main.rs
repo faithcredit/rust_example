@@ -1,131 +1,76 @@
 // -------------------------------------------
-// 			Displaying Participant of an Online Meeting
-//           	- Description
-//           	    - Retrieving list of paginated view of the list participants in an online meeting
-
-//           	- Tools
-//           	    - BST + Stack
+// 			Barriers
 // -------------------------------------------
 
-use std::cell::RefCell;
-use std::rc::Rc;
-#[derive(Debug, Default, PartialEq, Eq, Clone)]
-struct Node {
-    val: String,
-    left: Link,
-    right: Link,
-}
+// use std::sync::Arc;
+// use std::sync::Barrier;
+// use std::thread;
 
-type Link = Option<Rc<RefCell<Node>>>;
-impl Node {
-    fn new(val: String) -> Self {
-        Node {
-            val,
-            left: None,
-            right: None,
-        }
-    }
+// fn main() {
+//     let mut threads = Vec::new();
+//     let barrier = Arc::new(Barrier::new(5));
 
-    fn insert(&mut self, val: String) {
-        if val > self.val {
-            match &self.right {
-                None => self.right = Some(Rc::new(RefCell::new(Self::new(val)))), 
-                Some(node) => node.borrow_mut().insert(val.to_string()), 
-            }
-        } else {
-            match &self.left {
-                None => self.left = Some(Rc::new(RefCell::new(Self::new(val)))),
-                Some(node) => node.borrow_mut().insert(val.to_string()),
-            }
-        }
-    }
-}
+//     for i in 0..10 {
+//         let barrier = barrier.clone();
+//         let t = thread::spawn(move || {
+//             println!("before wait {}", i);
+//             barrier.wait();
+//             println!("after wait {}", i);
+//         });
+//         threads.push(t);
+//     }
 
-#[derive(Debug, Default, PartialEq, Eq)]
-struct BinarySearchTree {
-    root: Node,
-}
-impl BinarySearchTree {
-    fn new(val: String) -> Self {
-        BinarySearchTree {
-            root: Node::new(val.to_string()),
-        }
-    }
-    fn insert(&mut self, val: String) {
-        self.root.insert(val.to_string());
-    }
-}
+//     for t in threads {
+//         t.join().unwrap();
+//     }
+// }
 
-struct DisplayLobby {
-    stack: Vec<Rc<RefCell<Node>>>,
-}
-
-impl DisplayLobby {
-    fn new(root: Option<Rc<RefCell<Node>>>) -> Self {
-        let mut stack = Vec::new();
-        Self::push_all_left(root.clone(), &mut stack); 
-        DisplayLobby { stack }
-    }
-
-    fn push_all_left(mut p: Option<Rc<RefCell<Node>>>, stack: &mut Vec<Rc<RefCell<Node>>>) {
-        while let Some(link) = p.clone() {
-            stack.push(p.clone().unwrap());
-            p = link.borrow().left.clone();
-        }
-    }
-
-    fn next_name(&mut self) -> String {
-        let node = self.stack.pop().unwrap();
-        let name = &node.borrow().val;
-        let mut next_node = node.borrow().right.clone();
-
-        Self::push_all_left(next_node, &mut self.stack);
-        name.to_string()
-    }
-
-    fn next_page(&mut self) -> Vec<String> {
-        let mut resultant_names: Vec<String> = Vec::new();
-        for i in 0..10 {
-            if !self.stack.is_empty() {
-                resultant_names.push(self.next_name());
-            } else {
-                break;
-            }
-        }
-        resultant_names
-    }
-}
+use std::sync::Arc;
+use std::sync::Barrier;
+use std::sync::Mutex;
+use std::thread;
 
 fn main() {
-    // Driver code
-    let mut bst = BinarySearchTree::new("Jeanette".to_string());
-    let names: Vec<String> = vec![
-        "Latasha",
-        "Elvira",
-        "Caryl",
-        "Antoinette",
-        "Cassie",
-        "Charity",
-        "Lyn",
-        "Lia",
-        "Anya",
-        "Albert",
-        "Cherlyn",
-        "Lala",
-        "Kandice",
-        "Iliana",
-        "Nouman",
-        "Azam",
-    ]
-    .into_iter()
-    .map(String::from)
-    .collect();
-    for name in names.into_iter() {
-        bst.insert(name.to_string());
+    let mut threads = Vec::new();
+    let barrier = Arc::new(Barrier::new(3));
+    let data = Arc::new(vec![
+        vec![1, 2, 3, 4, 5, 6],
+        vec![1, 2, 3, 4, 5, 6],
+        vec![1, 2, 3, 4, 5, 6],
+    ]);
+
+    let result = Arc::new(Mutex::new(0));
+
+    for i in 0..3 {
+        let barrier = barrier.clone();
+        let data = data.clone();
+        let result = result.clone();
+        let t = thread::spawn(move || {
+
+            let x:i32 = data[i][0..3].iter().sum();
+            *result.lock().unwrap() += x;
+
+            //let mut x = result.lock().unwrap();
+            //*x = data[i][0..3].iter().sum();
+
+            println!("Thread {} Part 1 is done", i);
+            barrier.wait();
+
+            let x: i32 = data[i][3..6].iter().sum();
+            *result.lock().unwrap() += x;
+            //*x = data[i][3..6].iter().sum();
+
+            println!("Thread {} is complete ", i);
+        });
+        threads.push(t);
     }
 
-    let mut display = DisplayLobby::new(Some(Rc::new(RefCell::new(bst.root))));
-    println!("Participants on first page: {:?}\n", display.next_page());
+    for t in threads {
+        t.join().unwrap();
+    }
 
-    println!("Participants on second page: {:?}", display.next_page());
+    println!(
+        "The final value of hte result is {}",
+        *result.lock().unwrap()
+    );
 }

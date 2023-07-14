@@ -1,76 +1,63 @@
-// -------------------------------------------
-// 			Barriers
-// -------------------------------------------
+   // -------------------------------------------
+   // 			Project: Web Scrapping   
+   // ------------------------------------------- 
 
-// use std::sync::Arc;
-// use std::sync::Barrier;
-// use std::thread;
+   use std::sync::{mpsc,Arc,Mutex}; 
+   use std::time::{Duration, Instant}; 
+   use std::thread; 
+   use ureq::{Agent, AgentBuilder}; 
+   fn main() -> Result<(), ureq::Error>{  
+    let webpages = vec![
+        "https://gist.github.com/recluze/1d2989c7e345c8c3c542", 
+        "https://gist.github.com/recluze/a98aa1804884ca3b3ad3",
+        "https://gist.github.com/recluze/5051735efe3fc189b90d",
+        "https://gist.github.com/recluze/460157afc6a7492555bb",
+        "https://gist.github.com/recluze/5051735efe3fc189b90d",
+        "https://gist.github.com/recluze/c9bc4130af995c36176d",
+        "https://gist.github.com/recluze/1d2989c7e345c8c3c542",
+        "https://gist.github.com/recluze/a98aa1804884ca3b3ad3",
+        "https://gist.github.com/recluze/5051735efe3fc189b90d",
+        "https://gist.github.com/recluze/460157afc6a7492555bb",
+        "https://gist.github.com/recluze/5051735efe3fc189b90d",
+        "https://gist.github.com/recluze/c9bc4130af995c36176d",
+        "https://gist.github.com/recluze/1d2989c7e345c8c3c542",
+        "https://gist.github.com/recluze/a98aa1804884ca3b3ad3",
+        "https://gist.github.com/recluze/5051735efe3fc189b90d",
+        "https://gist.github.com/recluze/460157afc6a7492555bb",
+        "https://gist.github.com/recluze/5051735efe3fc189b90d",
+        "https://gist.github.com/recluze/c9bc4130af995c36176d",
+    ];  
+//////////////////Fetching of contens without Threads/////////////
+    let agent = ureq::AgentBuilder::new().build();
+    let now = Instant::now(); 
+    
+    for web_page in &webpages {
+        let web_body = agent.get(web_page).call()?.into_string()?;
+    }
+    println!("Time taken wihtout Threads: {:.2?}", now.elapsed());
+////////////Fetching of contents using threads///////////////////////////////
+    let now = Instant::now(); 
+    let agent = Arc::new(agent);
+    let mut handles: Vec<thread::JoinHandle<Result<(), ureq::Error>>> = Vec::new(); 
 
-// fn main() {
-//     let mut threads = Vec::new();
-//     let barrier = Arc::new(Barrier::new(5));
-
-//     for i in 0..10 {
-//         let barrier = barrier.clone();
-//         let t = thread::spawn(move || {
-//             println!("before wait {}", i);
-//             barrier.wait();
-//             println!("after wait {}", i);
-//         });
-//         threads.push(t);
-//     }
-
-//     for t in threads {
-//         t.join().unwrap();
-//     }
-// }
-
-use std::sync::Arc;
-use std::sync::Barrier;
-use std::sync::Mutex;
-use std::thread;
-
-fn main() {
-    let mut threads = Vec::new();
-    let barrier = Arc::new(Barrier::new(3));
-    let data = Arc::new(vec![
-        vec![1, 2, 3, 4, 5, 6],
-        vec![1, 2, 3, 4, 5, 6],
-        vec![1, 2, 3, 4, 5, 6],
-    ]);
-
-    let result = Arc::new(Mutex::new(0));
-
-    for i in 0..3 {
-        let barrier = barrier.clone();
-        let data = data.clone();
-        let result = result.clone();
+    for web_page in webpages {
+        let agent_thread = agent.clone(); 
         let t = thread::spawn(move || {
+            let web_body = agent_thread
+            .get(web_page)
+            .call()?
+            .into_string()?; 
 
-            let x:i32 = data[i][0..3].iter().sum();
-            *result.lock().unwrap() += x;
-
-            //let mut x = result.lock().unwrap();
-            //*x = data[i][0..3].iter().sum();
-
-            println!("Thread {} Part 1 is done", i);
-            barrier.wait();
-
-            let x: i32 = data[i][3..6].iter().sum();
-            *result.lock().unwrap() += x;
-            //*x = data[i][3..6].iter().sum();
-
-            println!("Thread {} is complete ", i);
+            Ok(())
         });
-        threads.push(t);
+        handles.push(t);
+    } 
+
+    for handle in handles {
+        handle.join().unwrap();
     }
 
-    for t in threads {
-        t.join().unwrap();
-    }
+    println!("Time taken using Threads: {:.2?}", now.elapsed());
+    Ok(())
 
-    println!(
-        "The final value of hte result is {}",
-        *result.lock().unwrap()
-    );
-}
+   }
